@@ -1,5 +1,5 @@
 # -*- encoding : utf-8 -*-
-class Map
+class SMap
   module Options
     class << Options
       def for(arg)
@@ -17,11 +17,11 @@ class Map
           end
 
         unless options.is_a?(Options)
-          options = Map.for(options)
+          options = SMap.for(options)
           options.extend(Options)
         end
 
-        raise unless options.is_a?(Map)
+        raise unless options.is_a?(SMap)
 
         options
       end
@@ -65,7 +65,7 @@ class Map
     end
 
     def get_opt(opts, options = {})
-      options = Map.for(options.is_a?(Hash) ? options : {:default => options})
+      options = SMap.for(options.is_a?(Hash) ? options : {:default => options})
       default = options[:default]
       [ opts ].flatten.each do |opt|
         return fetch(opt) if has_key?(opt)
@@ -157,20 +157,20 @@ class Map
 end
 
 
-def Map.options_for(*args, &block)
-  Map::Options.for(*args, &block)
+def SMap.options_for(*args, &block)
+  SMap::Options.for(*args, &block)
 end
 
-def Map.options_for!(*args, &block)
-  Map::Options.for(*args, &block).pop
+def SMap.options_for!(*args, &block)
+  SMap::Options.for(*args, &block).pop
 end
 
-def Map.update_options_for!(args, &block)
-  options = Map.options_for(args)
+def SMap.update_options_for!(args, &block)
+  options = SMap.options_for(args)
   block.call(options)
 end
 
-class << Map
+class << SMap
   src = 'options_for'
   %w( options opts extract_options ).each do |dst|
     alias_method(dst, src)

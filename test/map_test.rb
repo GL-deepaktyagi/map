@@ -2,24 +2,24 @@
 require 'testing'
 require 'map'
 
-Testing Map do
+Testing SMap do
   testing 'that bare constructor werks' do
-    assert{ Map.new }
+    assert{ SMap.new }
   end
 
   testing 'that the contructor accepts a hash' do
-    assert{ Map.new(hash = {}) }
+    assert{ SMap.new(hash = {}) }
   end
 
   testing 'that the constructor accepts the empty array' do
     array = []
-    assert{ Map.new(array) }
-    assert{ Map.new(*array) }
+    assert{ SMap.new(array) }
+    assert{ SMap.new(*array) }
   end
 
   testing 'that the constructor does not die when passed nil or false' do
-    assert{ Map.new(nil) }
-    assert{ Map.new(false) }
+    assert{ SMap.new(nil) }
+    assert{ SMap.new(false) }
   end
 
   testing 'that the contructor accepts an even sized array' do
@@ -29,8 +29,8 @@ Testing Map do
       [ %w( k v ), %w( key val ), %w( a b ), %w( x y ) ]
     ]
     arrays.each do |array|
-      assert{ Map.new(array) }
-      assert{ Map.new(*array) }
+      assert{ SMap.new(array) }
+      assert{ SMap.new(*array) }
     end
   end
 
@@ -40,8 +40,8 @@ Testing Map do
       [ %w( k v ), %w( key val ), %w( a b ) ]
     ]
     arrays.each do |array|
-      assert{ Map.new(array) }
-      assert{ Map.new(*array) }
+      assert{ SMap.new(array) }
+      assert{ SMap.new(*array) }
     end
   end
 
@@ -53,8 +53,8 @@ Testing Map do
       [ %w( k v ), %w( key val ), %w( a b ) ]
     ]
     arrays.each do |array|
-      assert{ Map.new(array) }
-      assert{ Map.new(*array) }
+      assert{ SMap.new(array) }
+      assert{ SMap.new(*array) }
     end
   end
 
@@ -66,9 +66,9 @@ Testing Map do
       [:key, :val]
     ]
     list.each do |args|
-      map = assert{ Map[*args] }
-      assert{ map.is_a?(Map) }
-      assert{ Map.new(*args) == map }
+      map = assert{ SMap[*args] }
+      assert{ map.is_a?(SMap) }
+      assert{ SMap.new(*args) == map }
     end
   end
 
@@ -93,7 +93,7 @@ Testing Map do
   end
 
   testing 'that maps are string/symbol indifferent for simple look-ups' do
-    map = Map.new
+    map = SMap.new
     map[:k] = :v
     map['a'] = 'b'
     assert{ map[:k] == :v }
@@ -103,7 +103,7 @@ Testing Map do
   end
 
   testing 'that maps are string/symbol indifferent for recursive look-ups' do
-    map = assert{ Map(:a => {:b => {:c => 42}}) }
+    map = assert{ SMap(:a => {:b => {:c => 42}}) }
     assert{ map[:a] = {:b => {:c => 42}} }
     assert{ map[:a][:b][:c] == 42 }
     assert{ map['a'][:b][:c] == 42 }
@@ -114,21 +114,21 @@ Testing Map do
     assert{ map[:a][:b]['c'] == 42 }
     assert{ map['a'][:b]['c'] == 42 }
 
-    map = assert{ Map(:a => [{:b => 42}]) }
+    map = assert{ SMap(:a => [{:b => 42}]) }
     assert{ map['a'].is_a?(Array) }
-    assert{ map['a'][0].is_a?(Map) }
+    assert{ map['a'][0].is_a?(SMap) }
     assert{ map['a'][0]['b'] == 42 }
 
-    map = assert{ Map(:a => [ {:b => 42}, [{:c => 'forty-two'}] ]) }
+    map = assert{ SMap(:a => [ {:b => 42}, [{:c => 'forty-two'}] ]) }
     assert{ map['a'].is_a?(Array) }
-    assert{ map['a'][0].is_a?(Map) }
+    assert{ map['a'][0].is_a?(SMap) }
     assert{ map['a'][1].is_a?(Array) }
     assert{ map['a'][0]['b'] == 42 }
     assert{ map['a'][1][0]['c'] == 'forty-two' }
   end
 
   testing 'that maps support shift like a good ordered container' do
-    map = Map.new
+    map = SMap.new
     10.times do |i|
       key, val = i.to_s, i
       assert{ map.unshift(key, val) }
@@ -137,7 +137,7 @@ Testing Map do
       assert{ map.values.first.to_s == val.to_s}
     end
 
-    map = Map.new
+    map = SMap.new
     args = []
     10.times do |i|
       key, val = i.to_s, i
@@ -159,14 +159,14 @@ Testing Map do
   end
 
   testing 'that inheritence works without cycles' do
-    c = Class.new(Map){}
+    c = Class.new(SMap){}
     o = assert{ c.new }
-    assert{ Map === o }
+    assert{ SMap === o }
   end
 
   testing 'equality' do
-    a = assert{ Map.new }
-    b = assert{ Map.new }
+    a = assert{ SMap.new }
+    b = assert{ SMap.new }
     assert{ a == b}
     assert{ a != 42 }
     b[:k] = :v
@@ -174,36 +174,36 @@ Testing Map do
   end
 
   testing 'simple struct usage' do
-    a = assert{ Map.new(:k => :v) }
+    a = assert{ SMap.new(:k => :v) }
     s = assert{ a.struct }
     assert{ s.k == :v }
   end
 
   testing 'nested struct usage' do
-    a = assert{ Map.new(:k => {:l => :v}) }
+    a = assert{ SMap.new(:k => {:l => :v}) }
     s = assert{ a.struct }
     assert{ s.k.l == :v }
   end
 
   testing 'that subclassing and clobbering initialize does not kill nested coersion' do
-    c = Class.new(Map){ def initialize(arg) end }
+    c = Class.new(SMap){ def initialize(arg) end }
     o = assert{ c.new(42) }
     assert{ o.is_a?(c) }
     assert{ o.update(:k => {:a => :b}) }
   end
 
   testing 'that subclassing does not kill class level coersion' do
-    c = Class.new(Map){ }
-    o = assert{ c.for(Map.new) }
+    c = Class.new(SMap){ }
+    o = assert{ c.for(SMap.new) }
     assert{ o.is_a?(c) }
 
     d = Class.new(c)
-    o = assert{ d.for(Map.new) }
+    o = assert{ d.for(SMap.new) }
     assert{ o.is_a?(d) }
   end
 
   testing 'that subclassing creates custom conversion methods' do
-    c = Class.new(Map) do
+    c = Class.new(SMap) do
       def self.name()
         :C
       end
@@ -218,7 +218,7 @@ Testing Map do
   end
 
   testing 'that custom conversion methods can be added' do
-    c = Class.new(Map)
+    c = Class.new(SMap)
     o = c.new
     foobar = {:k => :v}
     def foobar.to_foobar() self end
@@ -229,29 +229,29 @@ Testing Map do
   end
 
   testing 'that custom conversion methods are coerced - just in case' do
-    map = Map.new
+    map = SMap.new
     record = Class.new(Hash) do
       def to_map() {:id => 42} end
     end
     map.update(:list => [record.new, record.new])
-    assert{ map.list.all?{|x| x.is_a?(Map)} }
+    assert{ map.list.all?{|x| x.is_a?(SMap)} }
     assert{ map.list.all?{|x| x.id==42} }
   end
 
   testing 'that non-hashlike classes do *not* have conversion methods called on them' do
-    map = Map.new
+    map = SMap.new
     record = Class.new do
       def to_map() {:id => 42} end
     end
     map.update(:record => record.new) 
     assert{ !map.record.is_a?(Hash) } 
-    assert{ !map.record.is_a?(Map) } 
+    assert{ !map.record.is_a?(SMap) } 
     assert{ map.record.is_a?(record) } 
   end
 
   testing 'that coercion is minimal' do
-    map = Map.new
-    a = Class.new(Map) do
+    map = SMap.new
+    a = Class.new(SMap) do
       def to_map() {:k => :a} end
     end
     b = Class.new(a) do
@@ -270,9 +270,9 @@ Testing Map do
   testing 'that map supports basic option parsing for methods' do
     %w( options_for options opts ).each do |method|
       args = [0,1, {:k => :v, :a => false}]
-      Map.send(method, args)
-      opts = assert{ Map.send(method, args) }
-      assert{ opts.is_a?(Map) }
+      SMap.send(method, args)
+      opts = assert{ SMap.send(method, args) }
+      assert{ opts.is_a?(SMap) }
       assert{ opts.getopt(:k)==:v }
       assert{ opts.getopt(:a)==false }
       assert{ opts.getopt(:b, :default => 42)==42 }
@@ -283,10 +283,10 @@ Testing Map do
   testing 'that bang option parsing can pop the options off' do
     logic = proc do |method, args|
       before = args.dup
-      opts = assert{ Map.send(method, args) }
+      opts = assert{ SMap.send(method, args) }
       after = args
 
-      assert{ opts.is_a?(Map) }
+      assert{ opts.is_a?(SMap) }
       assert{ !args.last.is_a?(Hash) } if before.last.is_a?(Hash)
       assert{ args.last.object_id != opts.object_id }
 
@@ -306,12 +306,12 @@ Testing Map do
   end
 
   testing 'that maps can be converted to lists with numeric indexes' do
-    m = Map[0, :a, 1, :b, 2, :c]
+    m = SMap[0, :a, 1, :b, 2, :c]
     assert{ m.to_list == [:a, :b, :c] }
   end
 
   testing 'that method_missing hacks allow setting values, but not getting them until they are set' do
-    m = Map.new
+    m = SMap.new
     assert{ (m.missing rescue $!).is_a?(Exception) }
     assert{ m.missing = :val }
     assert{ m[:missing] == :val }
@@ -319,7 +319,7 @@ Testing Map do
   end
 
   testing 'that method_missing hacks have sane respond_to? semantics' do
-    m = Map.new
+    m = SMap.new
     assert{ !m.respond_to?(:missing) }
     assert{ m.respond_to?(:missing=) }
     assert{ m.missing = :val }
@@ -328,45 +328,45 @@ Testing Map do
   end
 
   testing 'that method missing with a block delegatets to fetch' do
-    m = Map.new
+    m = SMap.new
     assert{ m.missing{ :val } == :val }
     assert{ !m.has_key?(:key) }
   end
 
   testing 'that #id werks' do
-    m = Map.new
+    m = SMap.new
     assert{ (m.id rescue $!).is_a?(Exception) }
     m.id = 42
     assert{ m.id==42 }
   end
 
   testing 'that maps support compound key/val setting' do
-    m = Map.new
+    m = SMap.new
     assert{ m.set(:a, :b, :c, 42) }
     assert{ m.get(:a, :b, :c) == 42 }
 
-    m = Map.new
+    m = SMap.new
     assert{ m.set([:a, :b, :c], 42) }
     assert{ m.get(:a, :b, :c) == 42 }
 
-    m = Map.new
+    m = SMap.new
     assert{ m.set([:a, :b, :c] => 42) }
     assert{ m.get(:a, :b, :c) == 42 }
 
-    m = Map.new
+    m = SMap.new
     assert{ m.set([:x, :y, :z] => 42.0, [:A, 2] => 'forty-two') }
     assert{ m[:A].is_a?(Array) }
     assert{ m[:A].size == 3}
     assert{ m[:A][2] == 'forty-two' }
-    assert{ m[:x][:y].is_a?(Map) }
+    assert{ m[:x][:y].is_a?(SMap) }
     assert{ m[:x][:y][:z] == 42.0 }
 
-    assert{ Map.new.tap{|nm| nm.set} =~ {} }
-    assert{ Map.new.tap{|nm| nm.set({})} =~ {} }
+    assert{ SMap.new.tap{|nm| nm.set} =~ {} }
+    assert{ SMap.new.tap{|nm| nm.set({})} =~ {} }
   end
 
   testing 'that maps support compound key/val getting, setting, and checking with negative array indexes' do
-    m = Map.new(a: [b: :c])
+    m = SMap.new(a: [b: :c])
     assert { m.get(:a, '-1', :b) == m.get(:a, '-1').get(:b) }
     assert { m.get(:a, '-1', :b) == :c }
 
@@ -376,8 +376,8 @@ Testing Map do
     assert { m.has?(:a, '-1', :b) == true}
   end
 
-  testing 'that Map#get supports providing a default value in a block' do
-    m = Map.new
+  testing 'that SMap#get supports providing a default value in a block' do
+    m = SMap.new
     m.set(:a, :b, :c, 42)
     m.set(:z, 1)
     
@@ -385,12 +385,12 @@ Testing Map do
     assert { m.get(:z) {2} == 1 }
     assert { m.get(:a, :b, :d) {1} == 1 }
     assert { m.get(:a, :b, :c) {1} == 42 }
-    assert { m.get(:a, :b) {1} == Map.new({:c => 42}) }
+    assert { m.get(:a, :b) {1} == SMap.new({:c => 42}) }
     assert { m.get(:a, :aa) {1} == 1 }
   end
 
   testing 'that setting a sub-container does not eff up the container values' do
-    m = Map.new
+    m = SMap.new
     assert{ m.set(:array => [0,1,2]) }
     assert{ m.get(:array, 0) == 0 }
     assert{ m.get(:array, 1) == 1 }
@@ -403,21 +403,21 @@ Testing Map do
   end
 
   testing 'that #apply selectively merges non-nil values' do
-    m = Map.new(:array => [0, 1], :hash => {:a => false, :b => nil, :c => 42})
-    defaults = Map.new(:array => [nil, nil, 2], :hash => {:b => true})
+    m = SMap.new(:array => [0, 1], :hash => {:a => false, :b => nil, :c => 42})
+    defaults = SMap.new(:array => [nil, nil, 2], :hash => {:b => true})
 
     assert{ m.apply(defaults) }
     assert{ m[:array] == [0,1,2] }
     assert{ m[:hash] =~ {:a => false, :b => true, :c => 42} }
 
-    m = Map.new
+    m = SMap.new
     assert{ m.apply :key => [{:key => :val}] }
     assert{ m[:key].is_a?(Array) }
-    assert{ m[:key][0].is_a?(Map) }
+    assert{ m[:key][0].is_a?(SMap) }
   end
 
   testing 'that #add overlays the leaves of one hash onto another without nuking branches' do
-    m = Map.new
+    m = SMap.new
 
     assert do
       m.add(
@@ -438,7 +438,7 @@ Testing Map do
              {"body"=>"b", "description"=>"description"}]}
     end
 
-    m = Map.new
+    m = SMap.new
 
     assert do
       m.add(
@@ -453,11 +453,11 @@ Testing Map do
         {"a"=>{"b"=>{"c"=>42, "d"=>42.0}}}
     end
 
-    assert{ Map.new.tap{|i| i.add} =~ {} }
-    assert{ Map.new.tap{|i| i.add({})} =~ {} }
+    assert{ SMap.new.tap{|i| i.add} =~ {} }
+    assert{ SMap.new.tap{|i| i.add({})} =~ {} }
   end
 
-  testing 'that Map.combine is teh sweet' do
+  testing 'that SMap.combine is teh sweet' do
     {
       [{:a => {:b => 42}}, {:a => {:c => 42.0}}] =>
         {"a"=>{"b"=>42, "c"=>42.0}},
@@ -469,12 +469,12 @@ Testing Map do
         {"a"=>{"b"=>42, "d"=>{0=>1}, "c"=>42.0}}
 
     }.each do |args, expected|
-      assert{ Map.combine(*args) =~ expected }
+      assert{ SMap.combine(*args) =~ expected }
     end
   end
 
   testing 'that maps support depth_first_each' do
-    m = Map.new
+    m = SMap.new
     prefix = %w[ a b c ]
     keys = []
     n = 0.42
@@ -499,15 +499,15 @@ Testing Map do
     end
   end
 
-  testing 'that Map.each_pair works on arrays' do
+  testing 'that SMap.each_pair works on arrays' do
     each = []
     array = %w( a b c )
-    Map.each_pair(array){|k,v| each.push(k,v)}
+    SMap.each_pair(array){|k,v| each.push(k,v)}
     assert{ each_pair = ['a', 'b', 'c', nil] }
   end
 
   testing 'that maps support breath_first_each' do
-    map = Map[
+    map = SMap[
       'hash'         , {'x' => 'y'},
       'nested hash'  , {'nested' => {'a' => 'b'}},
       'array'        , [0, 1, 2],
@@ -516,7 +516,7 @@ Testing Map do
     ]
 
     accum = []
-    Map.breadth_first_each(map){|k, v| accum.push([k, v])}
+    SMap.breadth_first_each(map){|k, v| accum.push([k, v])}
     expected =
       [[["hash"], {"x"=>"y"}],
        [["nested hash"], {"nested"=>{"a"=>"b"}}],
@@ -538,7 +538,7 @@ Testing Map do
   end
 
   testing 'that maps have a needle-in-a-haystack like #contains? method' do
-    haystack = Map[
+    haystack = SMap[
       'hash'         , {'x' => 'y'},
       'nested hash'  , {'nested' => {'a' => 'b'}},
       'array'        , [0, 1, 2],
@@ -568,7 +568,7 @@ Testing Map do
   testing 'that #update and #replace accept map-ish objects' do
     o = Object.new
     def o.to_map() {:k => :v} end
-    m = Map.new
+    m = SMap.new
     assert{ m.update(o) }
     assert{ m =~ {:k => :v} }
     m[:a] = :b
@@ -578,7 +578,7 @@ Testing Map do
 
   testing 'that maps with un-marshal-able objects can be copied' do
     open(__FILE__) do |f|
-      m = Map.for(:f => f)
+      m = SMap.for(:f => f)
       assert{ m.copy }
       assert{ m.dup }
       assert{ m.clone }
@@ -586,22 +586,22 @@ Testing Map do
   end
 
   testing 'that maps have a blank? method that is sane' do
-    m = Map.new(:a => 0, :b => ' ', :c => '', :d => {}, :e => [], :f => false)
+    m = SMap.new(:a => 0, :b => ' ', :c => '', :d => {}, :e => [], :f => false)
     m.each do |key, val|
       assert{ m.blank?(key) }
     end
 
-    m = Map.new(:a => 1, :b => '_', :d => {:k=>:v}, :e => [42], :f => true)
+    m = SMap.new(:a => 1, :b => '_', :d => {:k=>:v}, :e => [42], :f => true)
     m.each do |key, val|
       assert{ !m.blank?(key) }
     end
 
-    assert{ Map.new.blank? }
+    assert{ SMap.new.blank? }
   end
 
   testing 'that self referential maps do not make #inspect puke' do
-    a = Map.new
-    b = Map.new
+    a = SMap.new
+    b = SMap.new
 
     b[:a] = a
     a[:b] = b
@@ -618,7 +618,7 @@ Testing Map do
   end
 
   testing 'that maps a clever little rm operator' do
-    map = Map.new
+    map = SMap.new
     map.set :a, :b, 42
     map.set :x, :y, 42
     map.set :x, :z, 42
@@ -648,7 +648,7 @@ Testing Map do
   end
 
   testing 'that maps a clever little question method' do
-    m = Map.new
+    m = SMap.new
     m.set(:a, :b, :c, 42)
     m.set([:x, :y, :z] => 42.0, [:A, 2] => 'forty-two')
 
@@ -667,7 +667,7 @@ Testing Map do
   end
 
   testing 'that maps have a clever little question method on Struct' do
-    m = Map.new
+    m = SMap.new
     m.set(:a, :b, :c, 42)
     m.set([:x, :y, :z] => 42.0, [:A, 2] => 'forty-two')
     s = m.struct
@@ -690,8 +690,8 @@ Testing Map do
 
   end
 
-  testing 'that Map#default= blows up until a sane strategy for dealing with it is developed' do
-    m = Map.new
+  testing 'that SMap#default= blows up until a sane strategy for dealing with it is developed' do
+    m = SMap.new
 
     assert do
       begin
@@ -702,31 +702,31 @@ Testing Map do
     end
   end
 
-## Map#keep_if tests
+## SMap#keep_if tests
 #
 # See: https://github.com/rubyspec/rubyspec/blob/ebd1ea400cb06807dbd6aa481c6c3d7a0b8fc7b4/core/hash/keep_if_spec.rb
 #
   # original failing test
-  testing 'that Map#keep_if properly removes k/v pairs for which the passed block evaluates to false' do
-    m = Map.new( { 1 => "hi" , 2 => "there" } )
+  testing 'that SMap#keep_if properly removes k/v pairs for which the passed block evaluates to false' do
+    m = SMap.new( { 1 => "hi" , 2 => "there" } )
     assert{ !( m.keep_if { |k,v| k == 2 }.keys.include? 1 ) }
   end
 
   testing 'yields two arguments: key and value' do
     all_args = []
-    m = Map.new( { 1 => 2 , 3 => 4 } )
+    m = SMap.new( { 1 => 2 , 3 => 4 } )
     m.keep_if { |*args| all_args << args }
     assert{ all_args == [[1, 2], [3, 4]] }
   end
 
   testing 'keeps every entry for which block is true and returns self' do
-    m = Map.new( { :a => 1 , :b => 2 , :c => 3 , :d => 4 } )
+    m = SMap.new( { :a => 1 , :b => 2 , :c => 3 , :d => 4 } )
     assert{ m.keep_if { |k,v| v % 2 == 0 }.object_id == m.object_id }
-    assert{ m == Map.new( { :b => 2 , :d => 4 } ) }
+    assert{ m == SMap.new( { :b => 2 , :d => 4 } ) }
   end
 
   testing 'it raises a RuntimeError if called on a frozen instance' do
-    m = Map.new( { :a => 1 } ).freeze
+    m = SMap.new( { :a => 1 } ).freeze
 
     assert do
       begin
@@ -738,7 +738,7 @@ Testing Map do
   end
 
   testing 'that Array-y values preserve their class' do
-    map = Map.new
+    map = SMap.new
     list = Class.new(Array){}.new
     map.list = list
     assert{ map.list.class == list.class }
@@ -746,7 +746,7 @@ Testing Map do
   end
 
   testing 'rack compatible params' do
-    m = Map.for(:a => [{}, {:b => 42}], :x => [ nil, [ nil, {:y => 42}] ], :A => {:B => {:C => 42}})
+    m = SMap.for(:a => [{}, {:b => 42}], :x => [ nil, [ nil, {:y => 42}] ], :A => {:B => {:C => 42}})
 
     assert{ m.param_for(:a, 1, :b) == 'map[a][][b]=42' }
     assert{ m.name_for(:a, 1, :b) == 'map[a][][b]' }
@@ -759,23 +759,23 @@ Testing Map do
 
     assert{ m.name_for(:A, :B, :C, :prefix => :foo) == 'foo[A][B][C]' }
 
-    m = Map.for({"a"=>{"b"=>42}, "x"=>{"y"=>42}, "foo"=>:bar, "array"=>[{"k"=>:v}]})
+    m = SMap.for({"a"=>{"b"=>42}, "x"=>{"y"=>42}, "foo"=>:bar, "array"=>[{"k"=>:v}]})
     assert{ m.to_params == "map[a][b]=42&map[x][y]=42&map[foo]=bar&map[array][][k]=v"  }
   end
 
   testing 'delete_if' do
-    m = Map.for(:k => :v)
+    m = SMap.for(:k => :v)
     assert{ m.delete_if{|k| k.to_s == 'k'} }
     assert{ m.empty?}
 
-    m = Map.for(:k => :v)
+    m = SMap.for(:k => :v)
     assert{ m.delete_if{|k,v| v.to_s == 'v'} }
     assert{ m.empty?}
   end
 
 protected
   def new_int_map(n = 1024)
-    map = assert{ Map.new }
+    map = assert{ SMap.new }
     n.times{|i| map[i.to_s] = i}
     map
   end

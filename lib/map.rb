@@ -1,11 +1,11 @@
 # -*- encoding : utf-8 -*-
-class Map < Hash
+class SMap < Hash
   Version = '6.6.0' unless defined?(Version)
   Load = Kernel.method(:load) unless defined?(Load)
 
-  class << Map
+  class << SMap
     def version
-      Map::Version
+      SMap::Version
     end
 
     def description
@@ -53,7 +53,7 @@ class Map < Hash
 
     def coerce(other)
       case other
-        when Map
+        when SMap
           other
         else
           allocate.update(other.to_hash)
@@ -68,7 +68,7 @@ class Map < Hash
 
     def conversion_methods
       @conversion_methods ||= (
-        map_like = ancestors.select{|ancestor| ancestor <= Map}
+        map_like = ancestors.select{|ancestor| ancestor <= SMap}
         type_names = map_like.map do |ancestor|
           name = ancestor.name.to_s.strip
           next if name.empty?
@@ -147,7 +147,7 @@ class Map < Hash
           return args
         end
 
-        raise(ArgumentError, 'odd number of arguments for Map')
+        raise(ArgumentError, 'odd number of arguments for SMap')
       end
 
       array_of_pairs = args.all?{|a| a.is_a?(Array) and a.size == 2}
@@ -170,7 +170,7 @@ class Map < Hash
     alias_method '[]', 'new'
 
     def intersection(a, b)
-      a, b, i = Map.for(a), Map.for(b), Map.new
+      a, b, i = SMap.for(a), SMap.for(b), SMap.new
       a.depth_first_each{|key, val| i.set(key, val) if b.has?(key)}
       i
     end
@@ -185,12 +185,12 @@ class Map < Hash
     end
 
     def call(object, method, *args, &block)
-      args = Map.args_for_arity(args, object.method(method).arity)
+      args = SMap.args_for_arity(args, object.method(method).arity)
       object.send(method, *args, &block)
     end
 
     def bcall(*args, &block)
-      args = Map.args_for_arity(args, block.arity)
+      args = SMap.args_for_arity(args, block.arity)
       block.call(*args)
     end
   end
@@ -236,7 +236,7 @@ class Map < Hash
 
   def initialize_from_array(array)
     map = self
-    Map.each_pair(array){|key, val| map[key] = val}
+    SMap.each_pair(array){|key, val| map[key] = val}
   end
 
 # support methods
@@ -245,7 +245,7 @@ class Map < Hash
     self.class
   end
 
-  def Map.map_for(hash)
+  def SMap.map_for(hash)
     map = klass.coerce(hash)
     map.default = hash.default
     map
@@ -254,7 +254,7 @@ class Map < Hash
     klass.map_for(hash)
   end
 
-  def Map.convert_key(key)
+  def SMap.convert_key(key)
     key.kind_of?(Symbol) ? key.to_s : key
   end
 
@@ -262,7 +262,7 @@ class Map < Hash
     if klass.respond_to?(:convert_key)
       klass.convert_key(key)
     else
-      Map.convert_key(key)
+      SMap.convert_key(key)
     end
   end
 
@@ -289,7 +289,7 @@ class Map < Hash
     if klass.respond_to?(:convert_value)
       klass.convert_value(value)
     else
-      Map.convert_value(value)
+      SMap.convert_value(value)
     end
   end
   alias_method('convert_val', 'convert_value')
@@ -323,7 +323,7 @@ class Map < Hash
   end
 
   def default=(value)
-    raise ArgumentError.new("Map doesn't work so well with a non-nil default value!") unless value.nil?
+    raise ArgumentError.new("SMap doesn't work so well with a non-nil default value!") unless value.nil?
   end
 
 # writer/reader methods
@@ -357,7 +357,7 @@ class Map < Hash
   alias_method 'member?', 'key?'
 
   def update(*args)
-    Map.each_pair(*args){|key, val| store(key, val)}
+    SMap.each_pair(*args){|key, val| store(key, val)}
     self
   end
   alias_method 'merge!', 'update'
@@ -437,7 +437,7 @@ class Map < Hash
 
     each do |key, val|
       args = [key, val]
-      to_delete.push(key) if !!Map.bcall(*args, &block)
+      to_delete.push(key) if !!SMap.bcall(*args, &block)
     end
 
     to_delete.each{|key| delete(key)}
@@ -469,7 +469,7 @@ class Map < Hash
   end
 
   def unshift(*args)
-    Map.each_pair(*args) do |key, val|
+    SMap.each_pair(*args) do |key, val|
       key = convert_key(key)
       delete(key)
       keys.unshift(key)
@@ -479,7 +479,7 @@ class Map < Hash
   end
 
   def push(*args)
-    Map.each_pair(*args) do |key, val|
+    SMap.each_pair(*args) do |key, val|
       key = convert_key(key)
       delete(key)
       keys.push(key)
@@ -500,12 +500,12 @@ class Map < Hash
 #
   def ==(other)
     case other
-      when Map
+      when SMap
         return false if keys != other.keys
         super(other)
 
       when Hash
-        self == Map.from_hash(other, self)
+        self == SMap.from_hash(other, self)
 
       else
         false
@@ -525,8 +525,8 @@ class Map < Hash
 # reordering support
 #
   def reorder(order = {})
-    order = Map.for(order)
-    map = Map.new
+    order = SMap.for(order)
+    map = SMap.new
     keys = order.depth_first_keys | depth_first_keys
     keys.each{|key| map.set(key, get(key))}
     map
@@ -538,8 +538,8 @@ class Map < Hash
 
 # support for building ordered hasshes from a map's own image
 #
-  def Map.from_hash(hash, order = nil)
-    map = Map.for(hash)
+  def SMap.from_hash(hash, order = nil)
+    map = SMap.for(hash)
     map.reorder!(order) if order
     map
   end
@@ -684,8 +684,8 @@ class Map < Hash
     collection = self
 
     keys.each do |k|
-      if Map.collection_has?(collection, k)
-        collection = Map.collection_key(collection, k)
+      if SMap.collection_has?(collection, k)
+        collection = SMap.collection_key(collection, k)
       else
         collection = nil
       end
@@ -696,10 +696,10 @@ class Map < Hash
       end
     end
 
-    if !Map.collection_has?(collection, key) && block_given?
+    if !SMap.collection_has?(collection, key) && block_given?
       yield #default_value
     else
-      Map.collection_key(collection, key)
+      SMap.collection_key(collection, key)
     end
   end
 
@@ -707,13 +707,13 @@ class Map < Hash
     keys = key_for(keys)
     collection = self
 
-    return Map.collection_has?(collection, keys.first) if keys.size <= 1
+    return SMap.collection_has?(collection, keys.first) if keys.size <= 1
 
     keys, key = keys[0..-2], keys[-1]
 
     keys.each do |k|
-      if Map.collection_has?(collection, k)
-        collection = Map.collection_key(collection, k)
+      if SMap.collection_has?(collection, k)
+        collection = SMap.collection_key(collection, k)
       else
         collection = nil
       end
@@ -723,10 +723,10 @@ class Map < Hash
 
     return false unless(collection.is_a?(Hash) or collection.is_a?(Array))
 
-    Map.collection_has?(collection, key)
+    SMap.collection_has?(collection, key)
   end
 
-  def Map.blank?(value)
+  def SMap.blank?(value)
     return value.blank? if value.respond_to?(:blank?)
 
     case value
@@ -743,10 +743,10 @@ class Map < Hash
 
   def blank?(*keys)
     return empty? if keys.empty?
-    !has?(*keys) or Map.blank?(get(*keys))
+    !has?(*keys) or SMap.blank?(get(*keys))
   end
 
-  def Map.collection_key(collection, key, &block)
+  def SMap.collection_key(collection, key, &block)
     case collection
       when Array
         begin
@@ -765,10 +765,10 @@ class Map < Hash
   end
 
   def collection_key(*args, &block)
-    Map.collection_key(*args, &block)
+    SMap.collection_key(*args, &block)
   end
 
-  def Map.collection_has?(collection, key, &block)
+  def SMap.collection_has?(collection, key, &block)
     has_key =
       case collection
         when Array
@@ -788,10 +788,10 @@ class Map < Hash
   end
 
   def collection_has?(*args, &block)
-    Map.collection_has?(*args, &block)
+    SMap.collection_has?(*args, &block)
   end
 
-  def Map.collection_set(collection, key, value, &block)
+  def SMap.collection_set(collection, key, value, &block)
     set_key = false
 
     case collection
@@ -818,7 +818,7 @@ class Map < Hash
   end
 
   def collection_set(*args, &block)
-    Map.collection_set(*args, &block)
+    SMap.collection_set(*args, &block)
   end
 
   def set(*args)
@@ -838,7 +838,7 @@ class Map < Hash
 
     strategy.each do |skey, svalue|
       leaf_for(skey, :autovivify => true) do |leaf, k|
-        Map.collection_set(leaf, k, svalue)
+        SMap.collection_set(leaf, k, svalue)
       end
     end
 
@@ -858,7 +858,7 @@ class Map < Hash
         hash[key] = value
     end
 
-    exploded = Map.explode(hash)
+    exploded = SMap.explode(hash)
 
     exploded[:branches].each do |bkey, btype|
       set(bkey, btype.new) unless get(bkey).is_a?(btype)
@@ -871,11 +871,11 @@ class Map < Hash
     self
   end
 
-  def Map.explode(hash)
+  def SMap.explode(hash)
     accum = {:branches => [], :leaves => []}
 
     hash.each do |key, value|
-      Map._explode(key, value, accum)
+      SMap._explode(key, value, accum)
     end
 
     branches = accum[:branches]
@@ -889,7 +889,7 @@ class Map < Hash
     accum
   end
 
-  def Map._explode(key, value, accum = {:branches => [], :leaves => []})
+  def SMap._explode(key, value, accum = {:branches => [], :leaves => []})
     key = Array(key).flatten
 
     case value
@@ -897,14 +897,14 @@ class Map < Hash
         accum[:branches].push([key, Array])
 
         value.each_with_index do |v, k|
-          Map._explode(key + [k], v, accum)
+          SMap._explode(key + [k], v, accum)
         end
 
       when Hash
-        accum[:branches].push([key, Map])
+        accum[:branches].push([key, SMap])
 
         value.each do |k, v|
-          Map._explode(key + [k], v, accum)
+          SMap._explode(key + [k], v, accum)
         end
 
       else
@@ -914,17 +914,17 @@ class Map < Hash
     accum
   end
 
-  def Map.add(*args)
+  def SMap.add(*args)
     args.flatten!
     args.compact!
 
-    Map.for(args.shift).tap do |map|
+    SMap.for(args.shift).tap do |map|
       args.each{|arg| map.add(arg)}
     end
   end
 
-  def Map.combine(*args)
-    Map.add(*args)
+  def SMap.combine(*args)
+    SMap.add(*args)
   end
 
   def combine!(*args, &block)
@@ -943,21 +943,21 @@ class Map < Hash
     k = key.first
 
     key.each_cons(2) do |a, b|
-      exists = Map.collection_has?(leaf, a)
+      exists = SMap.collection_has?(leaf, a)
 
       case b
         when Numeric
           if options[:autovivify]
-            Map.collection_set(leaf, a, Array.new) unless exists
+            SMap.collection_set(leaf, a, Array.new) unless exists
           end
 
         when String, Symbol
           if options[:autovivify]
-            Map.collection_set(leaf, a, Map.new) unless exists
+            SMap.collection_set(leaf, a, SMap.new) unless exists
           end
       end
 
-      leaf = Map.collection_key(leaf, a)
+      leaf = SMap.collection_key(leaf, a)
       k = b
     end
 
@@ -1013,13 +1013,13 @@ class Map < Hash
   end
 
   def apply(other)
-    Map.for(other).depth_first_each do |keys, value|
+    SMap.for(other).depth_first_each do |keys, value|
       set(keys => value) unless !get(keys).nil?
     end
     self
   end
 
-  def Map.alphanumeric_key_for(key)
+  def SMap.alphanumeric_key_for(key)
     return key if key.is_a?(Numeric)
 
     digity, stringy, digits = %r/^(~)?(\d+)$/iomx.match(key).to_a
@@ -1028,7 +1028,7 @@ class Map < Hash
   end
 
   def alphanumeric_key_for(key)
-    Map.alphanumeric_key_for(key)
+    SMap.alphanumeric_key_for(key)
   end
 
   def self.key_for(*keys)
@@ -1041,11 +1041,11 @@ class Map < Hash
 
 ## TODO - technically this returns only leaves so the name isn't *quite* right.  re-factor for 3.0
 #
-  def Map.depth_first_each(enumerable, path = [], accum = [], &block)
-    Map.pairs_for(enumerable) do |key, val|
+  def SMap.depth_first_each(enumerable, path = [], accum = [], &block)
+    SMap.pairs_for(enumerable) do |key, val|
       path.push(key)
       if((val.is_a?(Hash) or val.is_a?(Array)) and not val.empty?)
-        Map.depth_first_each(val, path, accum)
+        SMap.depth_first_each(val, path, accum)
       else
         accum << [path.dup, val]
       end
@@ -1058,19 +1058,19 @@ class Map < Hash
     end
   end
 
-  def Map.depth_first_keys(enumerable, path = [], accum = [], &block)
-    accum = Map.depth_first_each(enumerable, path = [], accum = [], &block)
+  def SMap.depth_first_keys(enumerable, path = [], accum = [], &block)
+    accum = SMap.depth_first_each(enumerable, path = [], accum = [], &block)
     accum.map!{|kv| kv.first}
     accum
   end
 
-  def Map.depth_first_values(enumerable, path = [], accum = [], &block)
-    accum = Map.depth_first_each(enumerable, path = [], accum = [], &block)
+  def SMap.depth_first_values(enumerable, path = [], accum = [], &block)
+    accum = SMap.depth_first_each(enumerable, path = [], accum = [], &block)
     accum.map!{|kv| kv.last}
     accum
   end
 
-  def Map.pairs_for(enumerable, *args, &block)
+  def SMap.pairs_for(enumerable, *args, &block)
     if block.nil?
       pairs, block = [], lambda{|*pair| pairs.push(pair)}
     else
@@ -1092,10 +1092,10 @@ class Map < Hash
     pairs ? pairs : result
   end
 
-  def Map.breadth_first_each(enumerable, accum = [], &block)
+  def SMap.breadth_first_each(enumerable, accum = [], &block)
     levels = []
 
-    keys = Map.depth_first_keys(enumerable)
+    keys = SMap.depth_first_keys(enumerable)
 
     keys.each do |key|
       key.size.times do |i|
@@ -1117,29 +1117,29 @@ class Map < Hash
     block ? enumerable : accum
   end
 
-  def Map.keys_for(enumerable)
+  def SMap.keys_for(enumerable)
     keys = enumerable.respond_to?(:keys) ? enumerable.keys : Array.new(enumerable.size){|i| i}
     keys
   end
 
   def depth_first_each(*args, &block)
-    Map.depth_first_each(self, *args, &block)
+    SMap.depth_first_each(self, *args, &block)
   end
 
   def depth_first_keys(*args, &block)
-    Map.depth_first_keys(self, *args, &block)
+    SMap.depth_first_keys(self, *args, &block)
   end
 
   def depth_first_values(*args, &block)
-    Map.depth_first_values(self, *args, &block)
+    SMap.depth_first_values(self, *args, &block)
   end
 
   def breadth_first_each(*args, &block)
-    Map.breadth_first_each(self, *args, &block)
+    SMap.breadth_first_each(self, *args, &block)
   end
 
   def contains(other)
-    other = other.is_a?(Hash) ? Map.coerce(other) : other
+    other = other.is_a?(Hash) ? SMap.coerce(other) : other
     breadth_first_each{|key, value| return true if value == other}
     return false
   end
@@ -1154,19 +1154,19 @@ class Map < Hash
 ## for mongoid type system support
 #
   def serialize(object)
-    ::Map.for(object)
+    ::SMap.for(object)
   end
 
   def deserialize(object)
-    ::Map.for(object)
+    ::SMap.for(object)
   end
 
-  def Map.demongoize(object)
-    Map.for(object)
+  def SMap.demongoize(object)
+    SMap.for(object)
   end
 
-  def Map.evolve(object)
-    Map.for(object)
+  def SMap.evolve(object)
+    SMap.for(object)
   end
 
   def mongoize
@@ -1176,12 +1176,12 @@ end
 
 module Kernel
 private
-  def Map(*args, &block)
-    Map.new(*args, &block)
+  def SMap(*args, &block)
+    SMap.new(*args, &block)
   end
 end
 
-Map.load('struct.rb')
-Map.load('options.rb')
-Map.load('params.rb')
+SMap.load('struct.rb')
+SMap.load('options.rb')
+SMap.load('params.rb')
 

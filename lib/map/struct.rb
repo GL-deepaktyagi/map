@@ -1,5 +1,5 @@
 # -*- encoding : utf-8 -*-
-class Map
+class SMap
   class Struct
     instance_methods.each { |m| undef_method m unless m =~ /^__|object_id/ }
 
@@ -24,7 +24,7 @@ class Map
           raise(IndexError, key) unless @map.has_key?(key)
           value = @map[key]
       end
-      value.is_a?(Map) ? value.struct : value
+      value.is_a?(SMap) ? value.struct : value
     end
 
     Keys = lambda{|*keys| keys.flatten!; keys.compact!; keys.map!{|key| key.to_s}} unless defined?(Keys)
@@ -46,7 +46,7 @@ class Map
     @struct ||= Struct.new(self)
   end
 
-  def Map.struct(*args, &block)
+  def SMap.struct(*args, &block)
     new(*args, &block).struct
   end
 end

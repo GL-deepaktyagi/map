@@ -11,7 +11,7 @@ require 'map'
   leak =
     lambda do
       100.times do
-        m = Map.new
+        m = SMap.new
 
         1000.times do |i|
           m[rand.to_s] = rand

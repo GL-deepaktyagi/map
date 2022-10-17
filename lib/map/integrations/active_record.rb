@@ -1,5 +1,5 @@
 # -*- encoding : utf-8 -*-
-class Map
+class SMap
   module Integrations
     module ActiveRecord
       def self.included( klass )
@@ -10,13 +10,13 @@ class Map
         def to_map( record , *args )
           # prep
           model         = record.class
-          map           = Map.new
+          map           = SMap.new
           map[ :model ] = model.name.underscore
           map[ :id ]    = record.id
 
           # yank out options if they are patently obvious...
           if args.size == 2 and args.first.is_a?( Array ) and args.last.is_a?( Hash )
-            options = Map.for args.last
+            options = SMap.for args.last
             args = args.first
           else
             options = nil
@@ -31,10 +31,10 @@ class Map
           # proc to remove options
           extract_options =
             proc do |array|
-              to_return = Map.new
+              to_return = SMap.new
               last = array.last
               if last.is_a?( Hash )
-                last = Map.for last
+                last = SMap.for last
                 if opts.any? { | opt | last.has_key? opt }
                   array.pop
                   to_return = last
@@ -136,5 +136,5 @@ class Map
 end
 
 if defined?( ActiveRecord::Base )
-  ActiveRecord::Base.send :include , Map::Integrations::ActiveRecord
+  ActiveRecord::Base.send :include , SMap::Integrations::ActiveRecord
 end

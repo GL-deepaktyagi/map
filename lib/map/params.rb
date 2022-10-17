@@ -1,15 +1,15 @@
-class Map
+class SMap
   def param_for(*args, &block)
-    options = Map.options_for!(args)
+    options = SMap.options_for!(args)
 
     prefix = options[:prefix] || 'map'
 
-    src_key = args.flatten.map{|arg| Map.alphanumeric_key_for(arg)}
+    src_key = args.flatten.map{|arg| SMap.alphanumeric_key_for(arg)}
 
     dst_key = src_key.map{|k| k.is_a?(Numeric) ? 0 : k}
 
     src = self
-    dst = Map.new
+    dst = SMap.new
 
     value =
       if options.has_key?(:value)
@@ -24,7 +24,7 @@ class Map
   end
 
   def name_for(*args, &block)
-    options = Map.options_for!(args)
+    options = SMap.options_for!(args)
     options[:value] = nil
     args.push(options)
     param_for(*args, &block)

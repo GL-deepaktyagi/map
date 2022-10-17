@@ -22,16 +22,16 @@ DESCRIPTION
 # maps are always ordered.  constructing them in an ordered fashion builds
 # them that way, although the normal hash contructor is also supported
 #
-  m = Map[:k, :v, :key, :val]
-  m = Map(:k, :v, :key, :val)
-  m = Map.new(:k, :v, :key, :val)
+  m = SMap[:k, :v, :key, :val]
+  m = SMap(:k, :v, :key, :val)
+  m = SMap.new(:k, :v, :key, :val)
 
-  m = Map[[:k, :v], [:key, :val]]
-  m = Map(:k => :v, :key => :val)  # ruh-oh, the input hash loses order!
-  m = Map.new(:k => :v, :key => :val)  # ruh-oh, the input hash loses order!
+  m = SMap[[:k, :v], [:key, :val]]
+  m = SMap(:k => :v, :key => :val)  # ruh-oh, the input hash loses order!
+  m = SMap.new(:k => :v, :key => :val)  # ruh-oh, the input hash loses order!
 
 
-  m = Map.new
+  m = SMap.new
   m[:a] = 0
   m[:b] = 1
   m[:c] = 2
@@ -62,7 +62,7 @@ DESCRIPTION
 
 # maps can give back clever little struct objects
 #
-  m = Map(:foo => {:bar => 42})
+  m = SMap(:foo => {:bar => 42})
   s = m.struct
   p s.foo.bar #=> 42
 
@@ -70,13 +70,13 @@ DESCRIPTION
 # indifference map.rb comes out of the box loaded with option support
 #
   def foo(*args, &block)
-    opts = Map.options(args)
+    opts = SMap.options(args)
     a = opts.getopt(:a)
     b = opts.getopt(:b, :default => false)
   end
 
 
-  opts = Map.options(:a => 42, :b => nil, :c => false)
+  opts = SMap.options(:a => 42, :b => nil, :c => false)
   opts.getopt(:a)                    #=> 42
   opts.getopt(:b)                    #=> nil
   opts.getopt(:b, :default => 42)    #=> 42 
@@ -90,12 +90,12 @@ DESCRIPTION
 
 # with options this becomes
 #
-  options = Map.options(:read_only => true)
+  options = SMap.options(:read_only => true)
   read_only = options.getopt(:read_only, :default => false) #=> true
 
 # maps support some really nice operators that hashes/orderedhashes do not
 #
-  m = Map.new
+  m = SMap.new
   m.set(:h, :a, 0, 42)
   m.has?(:h, :a)         #=> true
   p m                    #=> {'h' => {'a' => [42]}} 
@@ -106,14 +106,14 @@ DESCRIPTION
   m.get(:x, :y, :z)      #=> nil
   m[:x][:y][:z]          #=> raises exception!
 
-  m = Map.new(:array => [0,1])
+  m = SMap.new(:array => [0,1])
   defaults = {:array => [nil, nil, 2]}
   m.apply(defaults)
   p m[:array]            #=> [0,1,2]
 
 # they also support some different iteration styles
 #
-  m = Map.new
+  m = SMap.new
 
   m.set(
     [:a, :b, :c, 0] => 0,
